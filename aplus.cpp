@@ -12,6 +12,7 @@
 #include "LTexture.h"
 #include "healthbar.h"
 #include "cards.h" 
+#include "button.h"
 #define PI 3.14159265358979323846
 using namespace std;
 const int SCREEN_WIDTH = 1440;  //Screen dimension constants
@@ -68,6 +69,9 @@ TTF_Font *namefont = NULL;
 TTF_Font *damagefont = NULL;
 
 cards all_card[21], **battle_deck;
+
+LButton gButtons[6];
+const int TOTAL_BUTTONS = 4;
 
 
 int probability(double hit_rate, double avoid_rate);
@@ -319,46 +323,466 @@ bool loadMedia()
 		printf( "Failed to load stage 5 bg texture!\n" );		success = false;	}
 	if( !card_texture[0].loadFromFile("img/card_06.bmp")){
 		printf("Failed to load card_00 texture!\n");	success = false;}
+	else
+	{
+		//Set sprites
+		for( int i = 0; i < BUTTON_SPRITE_TOTAL; ++i )
+		{
+			gSpriteClips[ i ].x = 0;
+			gSpriteClips[ i ].y = i * 160;
+			gSpriteClips[ i ].w = BUTTON_WIDTH;
+			gSpriteClips[ i ].h = BUTTON_HEIGHT;
+		}
+
+		//Set buttons in corners
+		gButtons[0].setPosition( 200, 430 );
+		gButtons[1].setPosition( 560, 430 );
+		gButtons[2].setPosition( 920, 430 );
+		gButtons[3].setPosition( 200, 600 );
+        gButtons[4].setPosition( 560, 600 );
+        gButtons[5].setPosition( 920, 600 );	
+	}
+
 	if( !card_texture[1].loadFromFile("img/card_06.bmp")){
 		printf("Failed to load card_01 texture!\n");	success = false;}
+	else
+	{
+		//Set sprites
+		for( int i = 0; i < BUTTON_SPRITE_TOTAL; ++i )
+		{
+			gSpriteClips[ i ].x = 0;
+			gSpriteClips[ i ].y = i * 160;
+			gSpriteClips[ i ].w = BUTTON_WIDTH;
+			gSpriteClips[ i ].h = BUTTON_HEIGHT;
+		}
+
+		//Set buttons in corners
+		gButtons[0].setPosition( 200, 430 );
+		gButtons[1].setPosition( 560, 430 );
+		gButtons[2].setPosition( 920, 430 );
+		gButtons[3].setPosition( 200, 600 );
+        gButtons[4].setPosition( 560, 600 );
+        gButtons[5].setPosition( 920, 600 );	
+	}
+
 	if( !card_texture[2].loadFromFile("img/card_06.bmp")){
 		printf("Failed to load card_02 texture!\n");	success = false;}
+	else
+	{
+		//Set sprites
+		for( int i = 0; i < BUTTON_SPRITE_TOTAL; ++i )
+		{
+			gSpriteClips[ i ].x = 0;
+			gSpriteClips[ i ].y = i * 160;
+			gSpriteClips[ i ].w = BUTTON_WIDTH;
+			gSpriteClips[ i ].h = BUTTON_HEIGHT;
+		}
+
+		//Set buttons in corners
+		gButtons[0].setPosition( 200, 430 );
+		gButtons[1].setPosition( 560, 430 );
+		gButtons[2].setPosition( 920, 430 );
+		gButtons[3].setPosition( 200, 600 );
+        gButtons[4].setPosition( 560, 600 );
+        gButtons[5].setPosition( 920, 600 );	
+	}
+
 	if( !card_texture[3].loadFromFile("img/card_06.bmp")){
 		printf("Failed to load card_03 texture!\n");	success = false;}
+	else
+	{
+		//Set sprites
+		for( int i = 0; i < BUTTON_SPRITE_TOTAL; ++i )
+		{
+			gSpriteClips[ i ].x = 0;
+			gSpriteClips[ i ].y = i * 160;
+			gSpriteClips[ i ].w = BUTTON_WIDTH;
+			gSpriteClips[ i ].h = BUTTON_HEIGHT;
+		}
+
+		//Set buttons in corners
+		gButtons[0].setPosition( 200, 430 );
+		gButtons[1].setPosition( 560, 430 );
+		gButtons[2].setPosition( 920, 430 );
+		gButtons[3].setPosition( 200, 600 );
+        gButtons[4].setPosition( 560, 600 );
+        gButtons[5].setPosition( 920, 600 );	
+	}
+
 	if( !card_texture[4].loadFromFile("img/card_06.bmp")){
 		printf("Failed to load card_04 texture!\n");	success = false;}
+	else
+	{
+		//Set sprites
+		for( int i = 0; i < BUTTON_SPRITE_TOTAL; ++i )
+		{
+			gSpriteClips[ i ].x = 0;
+			gSpriteClips[ i ].y = i * 160;
+			gSpriteClips[ i ].w = BUTTON_WIDTH;
+			gSpriteClips[ i ].h = BUTTON_HEIGHT;
+		}
+
+		//Set buttons in corners
+		gButtons[0].setPosition( 200, 430 );
+		gButtons[1].setPosition( 560, 430 );
+		gButtons[2].setPosition( 920, 430 );
+		gButtons[3].setPosition( 200, 600 );
+        gButtons[4].setPosition( 560, 600 );
+        gButtons[5].setPosition( 920, 600 );	
+	}
+
 	if( !card_texture[5].loadFromFile("img/card_06.bmp")){
 		printf("Failed to load card_05 texture!\n");	success = false;}
+	else
+	{
+		//Set sprites
+		for( int i = 0; i < BUTTON_SPRITE_TOTAL; ++i )
+		{
+			gSpriteClips[ i ].x = 0;
+			gSpriteClips[ i ].y = i * 160;
+			gSpriteClips[ i ].w = BUTTON_WIDTH;
+			gSpriteClips[ i ].h = BUTTON_HEIGHT;
+		}
+
+		//Set buttons in corners
+		gButtons[0].setPosition( 200, 430 );
+		gButtons[1].setPosition( 560, 430 );
+		gButtons[2].setPosition( 920, 430 );
+		gButtons[3].setPosition( 200, 600 );
+        gButtons[4].setPosition( 560, 600 );
+        gButtons[5].setPosition( 920, 600 );	
+	}
+
 	if( !card_texture[6].loadFromFile("img/card_06.bmp")){
 		printf("Failed to load card_06 texture!\n");	success = false;}
+	else
+	{
+		//Set sprites
+		for( int i = 0; i < BUTTON_SPRITE_TOTAL; ++i )
+		{
+			gSpriteClips[ i ].x = 0;
+			gSpriteClips[ i ].y = i * 160;
+			gSpriteClips[ i ].w = BUTTON_WIDTH;
+			gSpriteClips[ i ].h = BUTTON_HEIGHT;
+		}
+
+		//Set buttons in corners
+		gButtons[0].setPosition( 200, 430 );
+		gButtons[1].setPosition( 560, 430 );
+		gButtons[2].setPosition( 920, 430 );
+		gButtons[3].setPosition( 200, 600 );
+        gButtons[4].setPosition( 560, 600 );
+        gButtons[5].setPosition( 920, 600 );	
+	}
+
 	if( !card_texture[7].loadFromFile("img/card_12.bmp")){
 		printf("Failed to load card_07 texture!\n");	success = false;}
+	else
+	{
+		//Set sprites
+		for( int i = 0; i < BUTTON_SPRITE_TOTAL; ++i )
+		{
+			gSpriteClips[ i ].x = 0;
+			gSpriteClips[ i ].y = i * 160;
+			gSpriteClips[ i ].w = BUTTON_WIDTH;
+			gSpriteClips[ i ].h = BUTTON_HEIGHT;
+		}
+
+		//Set buttons in corners
+		gButtons[0].setPosition( 200, 430 );
+		gButtons[1].setPosition( 560, 430 );
+		gButtons[2].setPosition( 920, 430 );
+		gButtons[3].setPosition( 200, 600 );
+        gButtons[4].setPosition( 560, 600 );
+        gButtons[5].setPosition( 920, 600 );	
+	}
+
 	if( !card_texture[8].loadFromFile("img/card_12.bmp")){
 		printf("Failed to load card_08 texture!\n");	success = false;}
+	else
+	{
+		//Set sprites
+		for( int i = 0; i < BUTTON_SPRITE_TOTAL; ++i )
+		{
+			gSpriteClips[ i ].x = 0;
+			gSpriteClips[ i ].y = i * 160;
+			gSpriteClips[ i ].w = BUTTON_WIDTH;
+			gSpriteClips[ i ].h = BUTTON_HEIGHT;
+		}
+
+		//Set buttons in corners
+		gButtons[0].setPosition( 200, 430 );
+		gButtons[1].setPosition( 560, 430 );
+		gButtons[2].setPosition( 920, 430 );
+		gButtons[3].setPosition( 200, 600 );
+        gButtons[4].setPosition( 560, 600 );
+        gButtons[5].setPosition( 920, 600 );	
+	}
+
 	if( !card_texture[9].loadFromFile("img/card_12.bmp")){
 		printf("Failed to load card_09 texture!\n");	success = false;}
+	else
+	{
+		//Set sprites
+		for( int i = 0; i < BUTTON_SPRITE_TOTAL; ++i )
+		{
+			gSpriteClips[ i ].x = 0;
+			gSpriteClips[ i ].y = i * 160;
+			gSpriteClips[ i ].w = BUTTON_WIDTH;
+			gSpriteClips[ i ].h = BUTTON_HEIGHT;
+		}
+
+		//Set buttons in corners
+		gButtons[0].setPosition( 200, 430 );
+		gButtons[1].setPosition( 560, 430 );
+		gButtons[2].setPosition( 920, 430 );
+		gButtons[3].setPosition( 200, 600 );
+        gButtons[4].setPosition( 560, 600 );
+        gButtons[5].setPosition( 920, 600 );	
+	}
+
 	if( !card_texture[10].loadFromFile("img/card_12.bmp")){
 		printf("Failed to load card_10 texture!\n");	success = false;}
+	else
+	{
+		//Set sprites
+		for( int i = 0; i < BUTTON_SPRITE_TOTAL; ++i )
+		{
+			gSpriteClips[ i ].x = 0;
+			gSpriteClips[ i ].y = i * 160;
+			gSpriteClips[ i ].w = BUTTON_WIDTH;
+			gSpriteClips[ i ].h = BUTTON_HEIGHT;
+		}
+
+		//Set buttons in corners
+		gButtons[0].setPosition( 200, 430 );
+		gButtons[1].setPosition( 560, 430 );
+		gButtons[2].setPosition( 920, 430 );
+		gButtons[3].setPosition( 200, 600 );
+        gButtons[4].setPosition( 560, 600 );
+        gButtons[5].setPosition( 920, 600 );	
+	}
+
 	if( !card_texture[11].loadFromFile("img/card_12.bmp")){
 		printf("Failed to load card_11 texture!\n");	success = false;}
+	else
+	{
+		//Set sprites
+		for( int i = 0; i < BUTTON_SPRITE_TOTAL; ++i )
+		{
+			gSpriteClips[ i ].x = 0;
+			gSpriteClips[ i ].y = i * 160;
+			gSpriteClips[ i ].w = BUTTON_WIDTH;
+			gSpriteClips[ i ].h = BUTTON_HEIGHT;
+		}
+
+		//Set buttons in corners
+		gButtons[0].setPosition( 200, 430 );
+		gButtons[1].setPosition( 560, 430 );
+		gButtons[2].setPosition( 920, 430 );
+		gButtons[3].setPosition( 200, 600 );
+        gButtons[4].setPosition( 560, 600 );
+        gButtons[5].setPosition( 920, 600 );	
+	}
+
 	if( !card_texture[12].loadFromFile("img/card_12.bmp")){
 		printf("Failed to load card_12 texture!\n");	success = false;}
+	else
+	{
+		//Set sprites
+		for( int i = 0; i < BUTTON_SPRITE_TOTAL; ++i )
+		{
+			gSpriteClips[ i ].x = 0;
+			gSpriteClips[ i ].y = i * 160;
+			gSpriteClips[ i ].w = BUTTON_WIDTH;
+			gSpriteClips[ i ].h = BUTTON_HEIGHT;
+		}
+
+		//Set buttons in corners
+		gButtons[0].setPosition( 200, 430 );
+		gButtons[1].setPosition( 560, 430 );
+		gButtons[2].setPosition( 920, 430 );
+		gButtons[3].setPosition( 200, 600 );
+        gButtons[4].setPosition( 560, 600 );
+        gButtons[5].setPosition( 920, 600 );	
+	}
+
 	if( !card_texture[13].loadFromFile("img/card_12.bmp")){
 		printf("Failed to load card_13 texture!\n");	success = false;}
+	else
+	{
+		//Set sprites
+		for( int i = 0; i < BUTTON_SPRITE_TOTAL; ++i )
+		{
+			gSpriteClips[ i ].x = 0;
+			gSpriteClips[ i ].y = i * 160;
+			gSpriteClips[ i ].w = BUTTON_WIDTH;
+			gSpriteClips[ i ].h = BUTTON_HEIGHT;
+		}
+
+		//Set buttons in corners
+		gButtons[0].setPosition( 200, 430 );
+		gButtons[1].setPosition( 560, 430 );
+		gButtons[2].setPosition( 920, 430 );
+		gButtons[3].setPosition( 200, 600 );
+        gButtons[4].setPosition( 560, 600 );
+        gButtons[5].setPosition( 920, 600 );	
+	}
+
 	if( !card_texture[14].loadFromFile("img/card_17.bmp")){
 		printf("Failed to load card_14 texture!\n");	success = false;}
+	else
+	{
+		//Set sprites
+		for( int i = 0; i < BUTTON_SPRITE_TOTAL; ++i )
+		{
+			gSpriteClips[ i ].x = 0;
+			gSpriteClips[ i ].y = i * 160;
+			gSpriteClips[ i ].w = BUTTON_WIDTH;
+			gSpriteClips[ i ].h = BUTTON_HEIGHT;
+		}
+
+		//Set buttons in corners
+		gButtons[0].setPosition( 200, 430 );
+		gButtons[1].setPosition( 560, 430 );
+		gButtons[2].setPosition( 920, 430 );
+		gButtons[3].setPosition( 200, 600 );
+        gButtons[4].setPosition( 560, 600 );
+        gButtons[5].setPosition( 920, 600 );	
+	}
+
 	if( !card_texture[15].loadFromFile("img/card_17.bmp")){
 		printf("Failed to load card_15 texture!\n");	success = false;}
+	else
+	{
+		//Set sprites
+		for( int i = 0; i < BUTTON_SPRITE_TOTAL; ++i )
+		{
+			gSpriteClips[ i ].x = 0;
+			gSpriteClips[ i ].y = i * 160;
+			gSpriteClips[ i ].w = BUTTON_WIDTH;
+			gSpriteClips[ i ].h = BUTTON_HEIGHT;
+		}
+
+		//Set buttons in corners
+		gButtons[0].setPosition( 200, 430 );
+		gButtons[1].setPosition( 560, 430 );
+		gButtons[2].setPosition( 920, 430 );
+		gButtons[3].setPosition( 200, 600 );
+        gButtons[4].setPosition( 560, 600 );
+        gButtons[5].setPosition( 920, 600 );	
+	}
+
 	if( !card_texture[16].loadFromFile("img/card_17.bmp")){
 		printf("Failed to load card_16 texture!\n");	success = false;}
+	else
+	{
+		//Set sprites
+		for( int i = 0; i < BUTTON_SPRITE_TOTAL; ++i )
+		{
+			gSpriteClips[ i ].x = 0;
+			gSpriteClips[ i ].y = i * 160;
+			gSpriteClips[ i ].w = BUTTON_WIDTH;
+			gSpriteClips[ i ].h = BUTTON_HEIGHT;
+		}
+
+		//Set buttons in corners
+		gButtons[0].setPosition( 200, 430 );
+		gButtons[1].setPosition( 560, 430 );
+		gButtons[2].setPosition( 920, 430 );
+		gButtons[3].setPosition( 200, 600 );
+        gButtons[4].setPosition( 560, 600 );
+        gButtons[5].setPosition( 920, 600 );	
+	}
+
 	if( !card_texture[17].loadFromFile("img/card_17.bmp")){
 		printf("Failed to load card_17 texture!\n");	success = false;}
+	else
+	{
+		//Set sprites
+		for( int i = 0; i < BUTTON_SPRITE_TOTAL; ++i )
+		{
+			gSpriteClips[ i ].x = 0;
+			gSpriteClips[ i ].y = i * 160;
+			gSpriteClips[ i ].w = BUTTON_WIDTH;
+			gSpriteClips[ i ].h = BUTTON_HEIGHT;
+		}
+
+		//Set buttons in corners
+		gButtons[0].setPosition( 200, 430 );
+		gButtons[1].setPosition( 560, 430 );
+		gButtons[2].setPosition( 920, 430 );
+		gButtons[3].setPosition( 200, 600 );
+        gButtons[4].setPosition( 560, 600 );
+        gButtons[5].setPosition( 920, 600 );	
+	}
+
 	if( !card_texture[18].loadFromFile("img/card_17.bmp")){
 		printf("Failed to load card_18 texture!\n");	success = false;}
+	else
+	{
+		//Set sprites
+		for( int i = 0; i < BUTTON_SPRITE_TOTAL; ++i )
+		{
+			gSpriteClips[ i ].x = 0;
+			gSpriteClips[ i ].y = i * 160;
+			gSpriteClips[ i ].w = BUTTON_WIDTH;
+			gSpriteClips[ i ].h = BUTTON_HEIGHT;
+		}
+
+		//Set buttons in corners
+		gButtons[0].setPosition( 200, 430 );
+		gButtons[1].setPosition( 560, 430 );
+		gButtons[2].setPosition( 920, 430 );
+		gButtons[3].setPosition( 200, 600 );
+        gButtons[4].setPosition( 560, 600 );
+        gButtons[5].setPosition( 920, 600 );	
+	}
+
 	if( !card_texture[19].loadFromFile("img/card_17.bmp")){
 		printf("Failed to load card_19 texture!\n");	success = false;}
+	else
+	{
+		//Set sprites
+		for( int i = 0; i < BUTTON_SPRITE_TOTAL; ++i )
+		{
+			gSpriteClips[ i ].x = 0;
+			gSpriteClips[ i ].y = i * 160;
+			gSpriteClips[ i ].w = BUTTON_WIDTH;
+			gSpriteClips[ i ].h = BUTTON_HEIGHT;
+		}
+
+		//Set buttons in corners
+		gButtons[0].setPosition( 200, 430 );
+		gButtons[1].setPosition( 560, 430 );
+		gButtons[2].setPosition( 920, 430 );
+		gButtons[3].setPosition( 200, 600 );
+        gButtons[4].setPosition( 560, 600 );
+        gButtons[5].setPosition( 920, 600 );	
+	}
+
 	if( !card_texture[20].loadFromFile("img/card_17.bmp")){
 		printf("Failed to load card_20 texture!\n");	success = false;}
+	else
+	{
+		//Set sprites
+		for( int i = 0; i < BUTTON_SPRITE_TOTAL; ++i )
+		{
+			gSpriteClips[ i ].x = 0;
+			gSpriteClips[ i ].y = i * 160;
+			gSpriteClips[ i ].w = BUTTON_WIDTH;
+			gSpriteClips[ i ].h = BUTTON_HEIGHT;
+		}
+
+		//Set buttons in corners
+		gButtons[0].setPosition( 200, 430 );
+		gButtons[1].setPosition( 560, 430 );
+		gButtons[2].setPosition( 920, 430 );
+		gButtons[3].setPosition( 200, 600 );
+        gButtons[4].setPosition( 560, 600 );
+        gButtons[5].setPosition( 920, 600 );	
+	}
+
 	if( !healthbar_texture.loadFromFile( "img/healthbar.bmp" ) ){
 		printf( "Failed to load healthbar texture!\n" );		success = false;	}
 	if( !paper_status_table_texture.loadFromFile( "img/testpaper_background.bmp" ) ){
@@ -606,6 +1030,20 @@ int main( int argc, char* args[] )
 						}
 						else if( state == student_attacking ){
 							//if mouse is on card: show detail
+							for(int i = 0 ; i < 6 ; i++)
+							{
+								gButtons[i].handleEvent(&e);
+							}
+
+							//SDL_SetRenderDrawColor( gRenderer, 0xFF, 0xFF, 0xFF, 0xFF );
+							//SDL_RenderClear( gRenderer );
+
+							for(int i = 0 ; i < 6 ; i++)
+							{
+								gButtons[i].setPosition(200 + 360 * (i % 3), 430 + 170 * (i / 3));
+								gButtons[i].render(card_texture, battle_deck, i);
+							}
+
 							if(professor[stage].stunning){ professor[stage].stunning = false; }
 							if(!student.stunning && probability(student.hit_rate,professor[stage].avoid_rate) == 1){
 								stud_attack_animation();
@@ -725,7 +1163,9 @@ void battlescene_render(){
 	
 	professor_texture[stage].render( professor_pos_rect.x , professor_pos_rect.y , &professor_pos_rect );
 
-	card_graph_render();
+	//card_graph_render();
+
+	
 
 	
 	papertable_render();
