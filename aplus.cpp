@@ -2,7 +2,6 @@
 #include <SDL2/SDL.h>
 #include <SDL_image.h>
 #include <SDL_ttf.h>
-#include <SDL_mixer.h>
 #include <cstdio>
 #include <sstream>
 #include <string>
@@ -13,33 +12,21 @@
 #include "LTexture.h"
 #include "healthbar.h"
 #include "cards.h" 
+#include "button.h"
+#include <iomanip>
 #define PI 3.14159265358979323846
 using namespace std;
 const int SCREEN_WIDTH = 1440;  //Screen dimension constants
 const int SCREEN_HEIGHT = 810;
 int block_x = SCREEN_WIDTH/16;
 int block_y = SCREEN_HEIGHT/9;
-int VOLUME = 36; //music volume
-bool battling = true;
 bool gatcha_played_animation[6] = {false};
 bool noschool_played = false;
 bool get_aplus_played = false;
 bool get_f_played = false, round_attacked = false;
 bool drawn_paper[6] = {false};
+bool start_attacking = false;
 int the_paper;//the paper drawn in every stage
-Mix_Music *OPmusic = NULL;
-Mix_Music *Battlemusic = NULL;
-Mix_Chunk *Attackmusic1 = NULL;
-Mix_Chunk *Attackmusic2 = NULL;
-Mix_Chunk *Attackmusic3 = NULL;
-Mix_Chunk *Attackmusic4 = NULL;
-Mix_Chunk *Hitmusic1 = NULL;
-Mix_Chunk *Hitmusic2 = NULL;
-Mix_Chunk *Jumpmusic = NULL;
-Mix_Chunk *Getpapermusic = NULL;
-Mix_Chunk *Diemusic = NULL;
-Mix_Chunk *Clearmusic = NULL;
- 
 
 enum game_state {				//game states
 	start,						//just entered game
@@ -85,6 +72,8 @@ TTF_Font *damagefont = NULL;
 
 cards all_card[21], **battle_deck;
 
+LButton gButtons[6];
+const int TOTAL_BUTTONS = 5;
 
 int probability(double hit_rate, double avoid_rate);
 
@@ -116,6 +105,8 @@ void card_graph_render();
 
 void professor_name_render();
 
+void card_sprite_preset();
+
 void stud_attack_animation();
 
 cards** deck_initialize(cards all[]);
@@ -124,7 +115,7 @@ void card_draw(cards *deck[], cards all[]);
 
 void stud_health_render();
 
-void damage_render(int x, int y,bool init = false);
+void damage_render(int x, int y,bool update = false,bool init = false);
 
 void professor_function();
 
@@ -146,7 +137,7 @@ SDL_Color get_f_text_color = {0xFF,0xFF,0xFF};
 SDL_Color quitgame_button_color = {0x00,0x00,0x00};
 SDL_Color godsound_color = {255,239,69};
 SDL_Color prof_name_color = {255,0,0};
-SDL_Color colll = {180,50,200}; // color of damage text
+SDL_Color colll = {255,0,0}; // color of damage text
 
 LTexture start_texture ;  				//texture of start scene
 LTexture explanation_texture ;			//texture of explanation scene
@@ -181,6 +172,8 @@ LTexture magicball_ring_2;
 LTexture student_health_bg; 
 LTexture student_health_text_texture;
 LTexture damage_text_texture;
+LTexture dialogue[11];
+
 
 student_class student;
 professor_class professor[6];
@@ -204,6 +197,16 @@ Uint16 professor_name_text_2[] = {0x7ba1,0x9662,0x7334,0xff0c,0x4f46,0x662f,0x5f
 Uint16 professor_name_text_3[] = {0x706b,0x7206,0x6559,0x6388,0x0000,0x0000};
 Uint16 professor_name_text_4[] = {0x8001,0x5a46,0x0000,0x0000};
 Uint16 professor_name_text_5[] = {0x6bc0,0x6ec5,0x4e4b,0x795e,0xff0e,0x68c4,0x5929,0x5e1d,0x0000,0x0000};
+Uint16 dialogue_text_1[] = {0x300c,0x9019,0x662f,0x7ba1,0x9662,0x7334,0xff11,0xff0c,0x4ed6,0x53ef,0x662f,0x7530,0x5f91,0x968a,0x968a,0x9577,0xff0c,0x8dd1,0x5f97,0x975e,0x5e38,0x5feb,0xff0c,0x8981,0x6253,0x4e2d,0x4ed6,0x53ef,0x4e0d,0x5bb9,0x6613,0x3002,0x300d};
+Uint16 dialogue_text_2[] = {0x300c,0x9019,0x662f,0x7ba1,0x9662,0x7334,0xff12,0xff0c,0x9084,0x633a,0x80d6,0x7684,0xff0c,0x9632,0x79a6,0x80af,0x5b9a,0x5f88,0x9ad8,0xff0c,0x653b,0x64ca,0x529b,0x22ef,0x770b,0x8d77,0x4f86,0x4e0d,0x600e,0x9ebc,0x6a23,0xff0c,0x54c8,0x54c8,0xff01,0x52a0,0x6cb9,0x5427,0x3002,0x300d
+};
+Uint16 dialogue_text_3[] = {0x300c,0x5979,0x662f,0x7cfb,0x4e0a,0x6700,0x6b63,0x7684,0x6559,0x6388,0x8b1d,0x66f8,0x6021,0xff0c,0x807d,0x8aaa,0x53ea,0x6709,0x4e00,0x500b,0x53eb,0x70ba,0x5ef7,0x7684,0x5b78,0x9577,0x6253,0x8d0f,0x904e,0x5979,0x22ef,0x5c0f,0x5fc3,0x5225,0x592a,0x6688,0x5979,0xff01,0x9019,0x6b21,0x6211,0x53ef,0x4e0d,0x7ad9,0x5728,0x4f60,0x9019,0x908a,0x4e86,0xff0c,0x6559,0x6388,0x52a0,0x6cb9,0xff01,0x300d
+};
+Uint16 dialogue_text_4[] = {0x300c,0x4ed6,0x662f,0x77f3,0x6559,0x6388,0xff0c,0x5c0d,0x6559,0x5b78,0x5f88,0x6709,0x71b1,0x60c5,0xff08,0x7269,0x7406,0xff09,0xff0c,0x5e0c,0x671b,0x6253,0x8d0f,0x4ed6,0x80fd,0x62ff,0x5230,0x8003,0x5377,0x800c,0x4e0d,0x662f,0x7070,0x71fc,0x22ef,0x300d
+};
+Uint16 dialogue_text_5[] = {0x68c4,0x5929,0x5e1d,0xff1a,0x300c,0x4eba,0x985e,0xff0c,0x4f60,0x5df2,0x7d93,0x76e1,0x529b,0x4e86,0x3002,0x300d};
+Uint16 dialogue_text_6[] = {0x300c,0x4ed6,0x662f,0x68c4,0x5929,0x5e1d,0xff0c,0x60f3,0x8981,0x5f97,0x5230,0xff21,0xff0b,0x5f97,0x901a,0x904e,0x4ed6,0x9019,0x95dc,0xff0c,0x7576,0x7136,0x4ed6,0x53ef,0x4e0d,0x597d,0x5c0d,0x4ed8,0x3002,0x6211,0x807d,0x904e,0x88ab,0x4ed6,0x7576,0x6389,0x7684,0x5b78,0x9577,0x8aaa,0xff0c,0x7576,0x4ed6,0x5931,0x53bb,0x751f,0x547d,0x6642,0xff0c,0x653b,0x64ca,0x529b,0x5c31,0x6703,0x63d0,0x9ad8,0xff0c,0x591a,0x6ce8,0x610f,0x4e00,0x9ede,0xff0c,0x52a0,0x6cb9,0xff01,0x300d
+};
 
 bool init()
 {
@@ -211,7 +214,7 @@ bool init()
 	bool success = true;
 
 	//Initialize SDL
-	if( SDL_Init( SDL_INIT_VIDEO | SDL_INIT_AUDIO ) < 0 )
+	if( SDL_Init( SDL_INIT_VIDEO ) < 0 )
 	{
 		printf( "SDL could not initialize! SDL Error: %s\n", SDL_GetError() );
 		success = false;
@@ -245,12 +248,7 @@ bool init()
 	{
 		printf( "SDL_image could not initialize! SDL_image Error: %s\n", IMG_GetError() );
 		success = false;
-	}
-	if( Mix_OpenAudio( 44100, MIX_DEFAULT_FORMAT, 2, 2048 ) < 0 )							//Initialize SDL_mixer
-    {
-        printf( "SDL_mixer could not initialize! SDL_mixer Error: %s\n", Mix_GetError() );
-        success = false;
-    }	
+	}	
 	gScreenSurface = SDL_GetWindowSurface( gWindow );
 	if( gScreenSurface == NULL )
 	{
@@ -340,46 +338,67 @@ bool loadMedia()
 		printf( "Failed to load stage 5 bg texture!\n" );		success = false;	}
 	if( !card_texture[0].loadFromFile("img/card_06.bmp")){
 		printf("Failed to load card_00 texture!\n");	success = false;}
+	else{card_sprite_preset();}
 	if( !card_texture[1].loadFromFile("img/card_06.bmp")){
 		printf("Failed to load card_01 texture!\n");	success = false;}
+	else{card_sprite_preset();}
 	if( !card_texture[2].loadFromFile("img/card_06.bmp")){
 		printf("Failed to load card_02 texture!\n");	success = false;}
+	else{card_sprite_preset();}
 	if( !card_texture[3].loadFromFile("img/card_06.bmp")){
 		printf("Failed to load card_03 texture!\n");	success = false;}
+	else{card_sprite_preset();}
 	if( !card_texture[4].loadFromFile("img/card_06.bmp")){
 		printf("Failed to load card_04 texture!\n");	success = false;}
+	else{card_sprite_preset();}
 	if( !card_texture[5].loadFromFile("img/card_06.bmp")){
 		printf("Failed to load card_05 texture!\n");	success = false;}
+	else{card_sprite_preset();}
 	if( !card_texture[6].loadFromFile("img/card_06.bmp")){
 		printf("Failed to load card_06 texture!\n");	success = false;}
+	else{card_sprite_preset();}
 	if( !card_texture[7].loadFromFile("img/card_12.bmp")){
 		printf("Failed to load card_07 texture!\n");	success = false;}
+	else{card_sprite_preset();}
 	if( !card_texture[8].loadFromFile("img/card_12.bmp")){
 		printf("Failed to load card_08 texture!\n");	success = false;}
+	else{card_sprite_preset();}
 	if( !card_texture[9].loadFromFile("img/card_12.bmp")){
 		printf("Failed to load card_09 texture!\n");	success = false;}
+	else{card_sprite_preset();}
 	if( !card_texture[10].loadFromFile("img/card_12.bmp")){
 		printf("Failed to load card_10 texture!\n");	success = false;}
+	else{card_sprite_preset();}
 	if( !card_texture[11].loadFromFile("img/card_12.bmp")){
 		printf("Failed to load card_11 texture!\n");	success = false;}
+	else{card_sprite_preset();}
 	if( !card_texture[12].loadFromFile("img/card_12.bmp")){
 		printf("Failed to load card_12 texture!\n");	success = false;}
+	else{card_sprite_preset();}
 	if( !card_texture[13].loadFromFile("img/card_12.bmp")){
 		printf("Failed to load card_13 texture!\n");	success = false;}
+	else{card_sprite_preset();}
 	if( !card_texture[14].loadFromFile("img/card_17.bmp")){
 		printf("Failed to load card_14 texture!\n");	success = false;}
+	else{card_sprite_preset();}
 	if( !card_texture[15].loadFromFile("img/card_17.bmp")){
 		printf("Failed to load card_15 texture!\n");	success = false;}
+	else{card_sprite_preset();}
 	if( !card_texture[16].loadFromFile("img/card_17.bmp")){
 		printf("Failed to load card_16 texture!\n");	success = false;}
+	else{card_sprite_preset();}
 	if( !card_texture[17].loadFromFile("img/card_17.bmp")){
 		printf("Failed to load card_17 texture!\n");	success = false;}
+	else{card_sprite_preset();}
 	if( !card_texture[18].loadFromFile("img/card_17.bmp")){
 		printf("Failed to load card_18 texture!\n");	success = false;}
+	else{card_sprite_preset();}
 	if( !card_texture[19].loadFromFile("img/card_17.bmp")){
 		printf("Failed to load card_19 texture!\n");	success = false;}
+	else{card_sprite_preset();}
 	if( !card_texture[20].loadFromFile("img/card_17.bmp")){
 		printf("Failed to load card_20 texture!\n");	success = false;}
+	else{card_sprite_preset();}
 	if( !healthbar_texture.loadFromFile( "img/healthbar.bmp" ) ){
 		printf( "Failed to load healthbar texture!\n" );		success = false;	}
 	if( !paper_status_table_texture.loadFromFile( "img/testpaper_background.bmp" ) ){
@@ -449,44 +468,18 @@ bool loadMedia()
 		printf( "Failed to load magic_ring_2 texture!\n" );		success = false;	}	
 	if( !student_health_bg.loadFromFile( "img/stud_health_bg.bmp"  ) ){
 		printf( "Failed to load student_health_bg texture!\n" );		success = false;	}
-	OPmusic = Mix_LoadMUS( "img/OP.wav" );
-    if( OPmusic == NULL ){
-        printf( "Failed to load OPmusic! SDL_mixer Error: %s\n", Mix_GetError() );	success = false; }
-    Battlemusic = Mix_LoadMUS( "img/battle_bgm.wav" );
-    if( Battlemusic == NULL ){
-        printf( "Failed to load Battle music! SDL_mixer Error: %s\n", Mix_GetError() );	success = false; }
-	Attackmusic1 = Mix_LoadWAV( "img/attack_sound_1.wav" );
-    if( Attackmusic1 == NULL ){
-        printf( "Failed to load Attackmusic1! SDL_mixer Error: %s\n", Mix_GetError() );	success = false; }
-	Attackmusic2 = Mix_LoadWAV( "img/attack_sound_2.wav" );
-    if( Attackmusic2 == NULL ){
-        printf( "Failed to load Attackmusic2! SDL_mixer Error: %s\n", Mix_GetError() );	success = false; }
-	Attackmusic3 = Mix_LoadWAV( "img/attack_sound_3.wav" );
-    if( Attackmusic3 == NULL ){
-        printf( "Failed to load Attackmusic3! SDL_mixer Error: %s\n", Mix_GetError() );	success = false; }
-	Attackmusic4 = Mix_LoadWAV( "img/attack_sound_4.wav" );
-    if( Attackmusic4 == NULL ){
-        printf( "Failed to load Attackmusic4! SDL_mixer Error: %s\n", Mix_GetError() );	success = false; }
-	Hitmusic1 = Mix_LoadWAV( "img/hit_sound_1.wav" );
-    if( Hitmusic1 == NULL ){
-        printf( "Failed to load Hitmusic1! SDL_mixer Error: %s\n", Mix_GetError() );	success = false; }
-    Hitmusic2 = Mix_LoadWAV( "img/hit_sound_2.wav" );
-    if( Hitmusic2 == NULL ){
-        printf( "Failed to load Hitmusic2! SDL_mixer Error: %s\n", Mix_GetError() );	success = false; }
-    Jumpmusic = Mix_LoadWAV( "img/jump.wav" );
-    if( Jumpmusic == NULL ){
-        printf( "Failed to load Jumpmusic! SDL_mixer Error: %s\n", Mix_GetError() );	success = false; }
-    Getpapermusic = Mix_LoadWAV( "img/getpaper.wav" );
-    if( Getpapermusic == NULL ){
-        printf( "Failed to load Getpapermusic! SDL_mixer Error: %s\n", Mix_GetError() );	success = false; }
-    Diemusic = Mix_LoadWAV( "img/died.wav" );
-    if( Diemusic == NULL ){
-        printf( "Failed to load Diemusic! SDL_mixer Error: %s\n", Mix_GetError() );	success = false; }
-	Clearmusic = Mix_LoadWAV( "img/stageclear.wav" );
-    if( Clearmusic == NULL ){
-        printf( "Failed to load Clearmusic! SDL_mixer Error: %s\n", Mix_GetError() );	success = false; }
-
-    
+	if( !dialogue[0].loadFromRenderedText_chinese( dialogue_text_1 ,get_f_text_color ) ){
+        printf( "Failed to load dialogue text1 texture!\n" );	success = false;	}
+    if( !dialogue[1].loadFromRenderedText_chinese( dialogue_text_2 ,get_f_text_color ) ){
+        printf( "Failed to load dialogue text2 texture!\n" );	success = false;	}
+    if( !dialogue[2].loadFromRenderedText_chinese( dialogue_text_3 ,get_f_text_color ) ){
+        printf( "Failed to load dialogue text3 texture!\n" );	success = false;	}
+    if( !dialogue[3].loadFromRenderedText_chinese( dialogue_text_4 ,get_f_text_color ) ){
+        printf( "Failed to load dialogue text4 texture!\n" );	success = false;	}
+    if( !dialogue[4].loadFromRenderedText_chinese( dialogue_text_5 ,get_f_text_color ) ){
+        printf( "Failed to load dialogue text5 texture!\n" );	success = false;	}
+    if( !dialogue[5].loadFromRenderedText_chinese( dialogue_text_6 ,get_f_text_color ) ){
+        printf( "Failed to load dialogue text6 texture!\n" );	success = false;	}
 	return success;
 }
 
@@ -545,7 +538,6 @@ void close()
 	//Quit SDL subsystems
 	IMG_Quit();
 	SDL_Quit();
-	Mix_Quit();
 }
 
 cards** deck_initialize(cards all[])
@@ -620,12 +612,11 @@ int main( int argc, char* args[] )
 			
 			for(int i=0;i<6;i++)	{ professor_healthbar[i] = healthbar_class( block_x * 8 - 332+38 , 5 , professor[i] ); }
 			
-			
 			//While application is running
 			while( !quit )
 			{
-				background_texture_render();		//render image in this function
-				SDL_RenderPresent( gRenderer );		//update screen
+				background_texture_render();	//render image in this function
+				SDL_RenderPresent( gRenderer );//update screen
 				//Handle events on queue
 				while( SDL_PollEvent( &e ) != 0 )
 				{
@@ -647,11 +638,6 @@ int main( int argc, char* args[] )
 						if(e.type == SDL_KEYDOWN){
 							switch( e.key.keysym.sym ){
                    	 	    case SDLK_SPACE:
-                   	 	    	if(battling == false){
-                   	 	    		Mix_FadeOutMusic(1000);
-                   	     	    	Mix_PlayMusic(Battlemusic,-1);
-                   	     	    	battling = true;
-								}
                    	     	    state = enter_stage;
                    	     	    break;
                    	    	}
@@ -662,45 +648,89 @@ int main( int argc, char* args[] )
 						if ( state == enter_stage ){
 							student.burning = false;			student.stunning = false;
 							professor[stage].burning = false;	professor[stage].stunning = false;
+							student.health = student.get_health_limit();
+							student_healthbar.init(student);
 							//tell player what ability that enemy posesses
+							if(e.type == SDL_KEYDOWN){
 							switch( e.key.keysym.sym ){
-	                   	 	    case SDLK_SPACE:
-	                   	     	    state = student_attacking;
-	                   	     	    break;
+                   	 	    case SDLK_SPACE:
+                   	     	    state = student_attacking;
+                   	     	    break;
                    	    	}
+						}
 							
 						}
 						else if( state == student_attacking ){
 							//if mouse is on card: show detail
-							if(professor[stage].stunning){ professor[stage].stunning = false; }
-							if(!student.stunning && probability(student.hit_rate,professor[stage].avoid_rate) == 1){
-								stud_attack_animation();
-								SDL_Delay(300);
-								cout<<battle_deck[0][0].get_attack()<<endl;
-								professor[stage].hurt(battle_deck[0][0]);	//professor get hurt 
-								professor_healthbar[stage].update(professor[stage]);
-								SDL_Delay(300);
-								if( professor[stage].burning == true){ professor[stage].health -= 3; }{
+							cards selected_card;
+							int row=-1,col=-1;
+							for(int i = 0 ; i < 6 ; i++)
+							{
+								gButtons[i].handleEvent(&e);
+								
+								//SDL_RenderPresent(gRenderer);
+							}
+							if(e.type == SDL_MOUSEBUTTONUP ){
+								for(int i=0;i<6;i++){
+									if(gButtons[i].mouse_on == true){
+										selected_card = battle_deck[i/3][i%3];
+										start_attacking = true;
+										row = i/3;
+										col = i%3;
+										cout <<"row = "<< row <<" col = " << col <<endl;
+										break;
+									}
+								} 
+								
+							}
+							
+							if ( start_attacking == true ){
+								
+								if(professor[stage].stunning){
+									professor[stage].stunning = false;
+								}
+								cout<<"attacking = "<<start_attacking<<endl;
+								bool canhit = probability(student.hit_rate,professor[stage].avoid_rate);
+								cout <<"stud hit rate = " << student.hit_rate <<endl
+									 <<"prof avoidrate= " << professor[stage].avoid_rate<<endl
+									 <<"canhit = "<< canhit <<endl;
+								if(!student.stunning && canhit){
+									
+									card_effect(selected_card, professor[stage], student);
+									student_healthbar.update(student);
+									
+									cout<<selected_card.id<<endl<<selected_card.get_attack()<<endl;
+									cout<<setw(3)<<battle_deck[0][0].id<<setw(3)<<battle_deck[0][1].id<<setw(3)<<battle_deck[0][2].id<<endl<<setw(3)<<battle_deck[1][0].id<<setw(3)<<battle_deck[1][1].id<<setw(3)<<battle_deck[1][2].id<<endl;
+									stud_attack_animation();
+									SDL_Delay(300);
+									professor[stage].hurt(selected_card);	//professor get hurt 
 									professor_healthbar[stage].update(professor[stage]);
 									SDL_Delay(300);
+									if( professor[stage].burning == true){ professor[stage].health -= 3; }{
+										professor_healthbar[stage].update(professor[stage]);
+										SDL_Delay(300);
+									}
+									battle_deck[row][col].id = -1;
+									card_draw(battle_deck,  all_card);
+									
+									cout<<selected_card.id<<endl<<selected_card.get_attack()<<endl;
+									cout<<setw(3)<<battle_deck[0][0].id<<setw(3)<<battle_deck[0][1].id<<setw(3)<<battle_deck[0][2].id<<endl<<setw(3)<<battle_deck[1][0].id<<setw(3)<<battle_deck[1][1].id<<setw(3)<<battle_deck[1][2].id<<endl;
 								}
-								
-								//deal with card effect
+								if(professor[stage].alive() == false){
+									
+									state = gatcha;
 								}
-							if(professor[stage].alive() == false){
-								Mix_PlayChannel( -1, Clearmusic, 0 );
-								state = gatcha;
+								else{
+									state = professor_attacking;
+								}
+							start_attacking = false;
 							}
-							else{
-								state = professor_attacking;
-							}
-
 						}
+						
+						
 						else if( state == professor_attacking ){
 							
 						}
-					
-						
 					}
 					else if(state == gatcha){
 						
@@ -755,6 +785,23 @@ int main( int argc, char* args[] )
 	return 0;
 }
 
+void card_sprite_preset(){
+	for( int i = 0; i < BUTTON_SPRITE_TOTAL; ++i )
+	{
+		gSpriteClips[ i ].x = 0;
+		gSpriteClips[ i ].y = i * 160;
+		gSpriteClips[ i ].w = BUTTON_WIDTH;
+		gSpriteClips[ i ].h = BUTTON_HEIGHT;
+	}
+	//Set buttons in corners
+	gButtons[0].setPosition( 200, 430 );
+	gButtons[1].setPosition( 560, 430 );
+	gButtons[2].setPosition( 920, 430 );
+	gButtons[3].setPosition( 200, 600 );
+	gButtons[4].setPosition( 560, 600 );
+	gButtons[5].setPosition( 920, 600 );	
+}
+
 int probability(double hit_rate, double avoid_rate){		//function of hitting of not
 	srand(time(NULL));
 	double rate = pow(hit_rate * (1-avoid_rate),0.5);
@@ -770,8 +817,7 @@ void papertable_render(){
 	if(paper[2])	paper_texture[2].render(175,15,&paper_3_rect);
 }
 
-void card_graph_render()
-{
+void card_graph_render(){
 	int i, j;
 	for(i = 0 ; i < 2 ; i++)
 	{
@@ -791,8 +837,18 @@ void battlescene_render(){
 	
 	professor_texture[stage].render( professor_pos_rect.x , professor_pos_rect.y , &professor_pos_rect );
 
-	card_graph_render();
-
+	//card_graph_render();
+	if(start_attacking == true || state != student_attacking){
+		for(int i = 0 ; i < 6 ; i++)
+		{
+			gButtons[i].Freese_LButtonSprite();
+		}	
+	}
+	for(int i = 0 ; i < 6 ; i++)
+	{
+		//gButtons[i].setPosition(200 + 360 * (i % 3), 430 + 170 * (i / 3));
+		gButtons[i].render(card_texture, battle_deck, i);
+	}
 	
 	papertable_render();
 	professor_healthbar[stage].render();	//render healthbar
@@ -822,14 +878,8 @@ void quitgame_button_render(){
 
 void background_texture_render(){
 	if( state == start ){
-		Mix_VolumeMusic(VOLUME);
 		start_texture.render(0,0);//Render texture to screen
 		continue_button_render();
-		if(battling == true){
-    		Mix_FadeOutMusic(1000);
- 	    	Mix_PlayMusic(OPmusic,-1);
- 	    	battling = false;
-		}
 		
 	}
 	else if( state == explanation ){
@@ -842,12 +892,20 @@ void background_texture_render(){
 	}
 	else if (state == enter_stage || state == student_attacking || state == professor_attacking){
 		battlescene_render();
+		if(state == enter_stage){
+		    if(stage == 1){
+		        SDL_Rect diaR = {100,500,dialogue[0].getWidth(),dialogue[0].getHeight()};
+		        dialogue[0].render(diaR.x,diaR.y,&diaR);
+		    }
+		}
 		if(state == student_attacking && round_attacked == true){
 			round_attacked = false;
 		}
 		if (state == professor_attacking && round_attacked == false){
 			round_attacked = true;
+			cout<<"attacking = "<<start_attacking<<endl;
 			professor_function();
+			
 		}
 		 
 	}
@@ -868,32 +926,16 @@ void background_texture_render(){
 	else if(state == no_school){
 		noschool_script();
 		//wasted animation
-		if(battling == true){
-    		Mix_FadeOutMusic(1000);
- 	    	Mix_PlayMusic(OPmusic,-1);
- 	    	battling = false;
-		}
-		
 	}
 	else if(state == get_f){
 		get_f_script();
 		get_f_texture.render(0,0);
 		quitgame_button_render();
-		if(battling == true){
-    		Mix_FadeOutMusic(1000);
- 	    	Mix_PlayMusic(OPmusic,-1);
- 	    	battling = false;
-		}
 	}
 	else if(state == get_aplus){
 		get_aplus_script();
 		get_aplus_texture.render(0,0);
 		quitgame_button_render();
-		if(battling == true){
-    		Mix_FadeOutMusic(1000);
- 	    	Mix_PlayMusic(OPmusic,-1);
- 	    	battling = false;
-		}
 	}
 }
 
@@ -903,8 +945,8 @@ void gatcha_animation(int num){
 	SDL_Rect blockR = { 670, 410, 100, 100};
 	SDL_Rect paperR = { 670, 410, 100, 100};
 	SDL_Rect paperRf = { 720, 405, 0, 0};
-	bool jumped = false, playedgetpaper = false;
-	bool finished = false, playedmusic = false;
+	bool jumped = false;
+	bool finished = false;
 	while(postmanR.x < 1440){
 		SDL_SetRenderDrawColor( gRenderer, 0x00, 0x00, 0x00, 0xFF );
         SDL_RenderClear( gRenderer );
@@ -939,10 +981,6 @@ void gatcha_animation(int num){
 				else{
 					jumped = true;
 				}
-				if(!playedmusic){
-					playedmusic = true;
-					Mix_PlayChannel(-1,Jumpmusic,0);
-				}
 			}
 			else{
 				testpaper_postman_jump.render(postmanR.x,postmanR.y ,&postmanR);
@@ -963,10 +1001,7 @@ void gatcha_animation(int num){
 		}
 		
 		if(finished){
-			if(!playedgetpaper){
-				playedgetpaper = true;
-				Mix_PlayChannel(-1,Getpapermusic,0);
-			}
+			
 			if(paperRf.w < 600){
 				paperRf.x -= 3;
 				paperRf.y -= 3;
@@ -1044,11 +1079,6 @@ void prof_attack_animation(){
 		iter -= (PI)/60;
 		SDL_Delay(10);
 	}
-	int num = 0;
-	num = rand()%2;
-	if(num == 0){	Mix_PlayChannel(-1,Hitmusic1,0);}
-	else if(num == 1){	Mix_PlayChannel(-1,Hitmusic2,0);}
-	
 }
 
 void noschool_script(){
@@ -1084,7 +1114,7 @@ void game_init(){
 	get_f_played = false;
 	noschool_played = false;
 	paper_num = 0;
-	damage_render(0,0,true);
+	damage_render(0,0,false,true);
 	for(int i=0;i<6;i++){professor_healthbar[stage].init(professor[stage]);}
 	student_healthbar.init(student);
 }
@@ -1166,13 +1196,6 @@ void professor_name_render(){
 
 void stud_attack_animation(){
 	double deg = 0;
-	int num = 0;
-	num = rand()%4;
-	if(num == 0){	Mix_PlayChannel(-1,Attackmusic1,0);}
-	else if(num == 1){	Mix_PlayChannel(-1,Attackmusic2,0);}
-	else if(num == 2){	Mix_PlayChannel(-1,Attackmusic3,0);}
-	else if(num == 3){	Mix_PlayChannel(-1,Attackmusic4,0);}
-	
 	SDL_Point center = {block_x * 5+19, 45 + block_y * 4+20};
 	SDL_Rect ballR = { center.x - 30 , center.y - 30 , 60 , 60 };
 	SDL_Rect ringR = { center.x - 60 , center.y - 60 , 120, 120};
@@ -1188,12 +1211,12 @@ void stud_attack_animation(){
 		magicball_ring_2.render(ringR.x,ringR.y,&ringR  , -5*i);
 		deg = 5*i;
 		SDL_RenderPresent( gRenderer );
-		SDL_Delay(10);
+		SDL_Delay(5);
 	}
 	int xpos = rand()%300 + 721 ;
 	int ypos = rand()%200 + 91  ;
-	int left = rand() % 2;
-	for(int i=0;i<30;i++){
+	int left = rand() % 2 ;
+	for(int i=0;i<20;i++){
 		background_texture_render();
 		professor_healthbar[stage].render();
 		magicball_center.render(ballR.x,ballR.y,&ballR);
@@ -1205,6 +1228,7 @@ void stud_attack_animation(){
 		SDL_Delay(30);
 		
 	}
+	damage_render(SCREEN_WIDTH,SCREEN_HEIGHT,true);
 }
 
 void stud_health_render(){
@@ -1218,10 +1242,10 @@ void stud_health_render(){
 	student_health_text_texture.render(healthtextrect.x,healthtextrect.y,&healthtextrect);
 }
 
-void damage_render(int x,int y,bool init){
+void damage_render(int x,int y,bool update,bool init){
 	static int previous[6] = {professor[0].get_health_limit(), professor[1].get_health_limit(), professor[2].get_health_limit(), professor[3].get_health_limit(), professor[4].get_health_limit(), professor[5].get_health_limit()};
 	static int current[6] = {professor[0].get_health_limit(), professor[1].get_health_limit(), professor[2].get_health_limit(), professor[3].get_health_limit(), professor[4].get_health_limit(), professor[5].get_health_limit()};
-	if(!init){
+	if(!init && !update){
 		current[stage] = professor[stage].health;
 		damage_text.str("");
 		damage_text << "-" << previous[stage] - current[stage];
@@ -1230,10 +1254,13 @@ void damage_render(int x,int y,bool init){
 		SDL_Rect damageR = { x ,  y , damage_text_texture.getWidth(), damage_text_texture.getHeight()};
 		damage_text_texture.render(damageR.x,damageR.y,&damageR);
 	}
-	else{
+	else if(init){
 		for(int i=0;i<6;i++){
 			previous[i] = current[i] = professor[i].get_health_limit();
 		}
+	}
+	else if(update){
+		for(int i=0;i<6;i++) 	previous[i] = current[i];
 	}
 	
 }
@@ -1248,13 +1275,18 @@ void professor_function(){
 	SDL_Delay(300);
 	student_healthbar.update(student);
 	SDL_Delay(300);
-	if( student.burning == true){ student.hurt(3); }{
+	if( student.burning == true){ 
+		student.hurt(3); 
 		student_healthbar.update(student);
 		SDL_Delay(300);
 	}
+	if( professor[stage].burning == true){
+		professor[stage].health -= 3;
+		professor_healthbar[stage].update(professor[stage]);
+		SDL_Delay(300);
+	}
 	if( student.alive() == false ){
-		Mix_PlayChannel( -1, Diemusic, 0 );
-		SDL_Delay(2000);
+		
 		state = no_school; 
 	}
 	else{

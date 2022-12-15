@@ -92,6 +92,7 @@ void professor_class::hurt(cards card){
 		}
 	}
 	damage *= student.attack_rate;
+	std::cout <<"damage to prof = " << damage <<std::endl;
 	if(damage >= health){
 		health = 0;
 		living = false;
@@ -130,7 +131,7 @@ professor_class::professor_class(int a){
 			attack = 15;
 			defence = 50;
 			hit_rate = 0.9;
-			avoid_rate = 0.95;
+			avoid_rate = 0.96;
 			burning = false;
 			stunning = false;
 			special = swifty;
